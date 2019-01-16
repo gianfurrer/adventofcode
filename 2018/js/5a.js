@@ -6,6 +6,6 @@ for (let i = 0; i < input.length; ++i) {
     stack.pop()
   }
   else {
-      stack.push(input[i])
+    stack.push(input[i])
   }
 }
