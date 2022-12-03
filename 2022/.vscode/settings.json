@@ -1,0 +1,6 @@
+{
+  "go.autocompleteUnimportedPackages": true,
+  "go.formatTool": "gofmt",
+  "go.gocodeAutoBuild": true,
+  "go.goroot": "/snap/go/current"
+}
