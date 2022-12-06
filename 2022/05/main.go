@@ -13,79 +13,43 @@ func check(e error) {
 	}
 }
 
-type Stack []string
-
-// IsEmpty: check if stack is empty
-func (s *Stack) IsEmpty() bool {
-	return len(*s) == 0
+type stack struct {
+	elements []rune
 }
 
-// Push a new value onto the stack
-func (s *Stack) Push(str string) {
-	*s = append(*s, str) // Simply append the new value to the end of the stack
+func (s *stack) push(r []rune) {
+	s.elements = append(s.elements, r...)
 }
 
-// Push a new value onto the stack
-func (s *Stack) PushN(elements []string) {
-	for _, element := range elements {
-		*s = append(*s, element) // Simply append the new value to the end of the stack
-	}
+func (s *stack) pop(n int) (r []rune) {
+	r = s.elements[len(s.elements)-n : len(s.elements)]
+	s.elements = s.elements[:len(s.elements)-n]
+	return
 }
 
-// Remove and return top element of stack. Return false if stack is empty.
-func (s *Stack) Pop() string {
-	if s.IsEmpty() {
-		return ""
-	} else {
-		index := len(*s) - 1   // Get the index of the top most element.
-		element := (*s)[index] // Index into the slice and obtain the element.
-		*s = (*s)[:index]      // Remove it from the stack by slicing it off.
-		return element
-	}
+func (s *stack) addToBottom(r rune) {
+	s.elements = append([]rune{r}, s.elements...)
 }
 
-// Remove and return top element of stack. Return false if stack is empty.
-func (s *Stack) PopN(n int) []string {
-	if s.IsEmpty() {
-		return []string{}
-	} else {
-		index := len(*s) - n     // Get the index of the top most element.
-		elements := (*s)[index:] // Index into the slice and obtain the element.
-		*s = (*s)[:index]        // Remove it from the stack by slicing it off.
-		return elements
-	}
-}
-
-func createStack(input string) []Stack {
+func createStack(input string) (stacks []stack) {
 	stackRows := strings.Split(input, "\n")
 	amount := len(strings.Split(stackRows[len(stackRows)-1], "   "))
-	stackRows = stackRows[:len(stackRows)-1]
-	for i, j := 0, len(stackRows)-1; i < j; i, j = i+1, j-1 {
-		stackRows[i], stackRows[j] = stackRows[j], stackRows[i]
-	}
+	stackRows = stackRows[1:]
+	stacks = make([]stack, amount)
 
-	var stacks []Stack
-
-	for stackIndex, elem := range stackRows {
+	for _, elem := range stackRows {
 		for i := 0; i < amount; i++ {
-			if stackIndex == 0 {
-				var stack Stack
-				stacks = append(stacks, stack)
-			}
-			container := strings.Trim(elem[i*4:i*4+3], " ")
-			container = strings.TrimLeft(container, "[")
-			container = strings.TrimRight(container, "]")
-			if len(container) > 0 {
-				stacks[i].Push(container)
+			container := rune(elem[i*4+1])
+			if container != ' ' {
+				stacks[i].addToBottom(container)
 			}
 		}
 	}
 	return stacks
 }
 
-func parseMoves(input string) [][]int {
+func parseMoves(input string) (moves [][]int) {
 	movesStr := strings.Split(input, "\n")
-	var moves [][]int
 	for _, line := range movesStr {
 		var move []int
 		split := strings.Split(line, " ")
@@ -99,37 +63,33 @@ func parseMoves(input string) [][]int {
 	return moves
 }
 
-func part1(input []string) string {
+func part1(input []string) (result string) {
 	stacks := createStack(input[0])
 	moves := parseMoves(input[1])
 
 	for _, move := range moves {
 		for i := 0; i < move[0]; i++ {
-			elemToMove := stacks[move[1]-1].Pop()
-			stacks[move[2]-1].Push(elemToMove)
+			stacks[move[2]-1].push(stacks[move[1]-1].pop(1))
 		}
 	}
 
-	var result string
 	for _, stack := range stacks {
-		result += stack.Pop()
+		result += string(stack.pop(1))
 	}
 
 	return result
 }
 
-func part2(input []string) string {
+func part2(input []string) (result string) {
 	stacks := createStack(input[0])
 	moves := parseMoves(input[1])
 
 	for _, move := range moves {
-		elementsToMove := stacks[move[1]-1].PopN(move[0])
-		stacks[move[2]-1].PushN(elementsToMove)
+		stacks[move[2]-1].push(stacks[move[1]-1].pop(move[0]))
 	}
 
-	var result string
 	for _, stack := range stacks {
-		result += stack.Pop()
+		result += string(stack.pop(1))
 	}
 
 	return result
